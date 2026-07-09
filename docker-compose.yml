@@ -1,0 +1,7 @@
+services:
+  athlete-service:
+    build: .
+    env_file:
+      - .env.example
+    ports:
+      - "8002:8000"
