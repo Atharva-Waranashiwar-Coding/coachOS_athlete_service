@@ -1,1 +1,1 @@
-"""API routes for the athlete service."""
+"""API package for the athlete service."""

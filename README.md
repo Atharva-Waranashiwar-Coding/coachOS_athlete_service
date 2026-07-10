@@ -1,82 +1,189 @@
 # CoachOS Athlete Service
 
-Athlete profile, relationship, and timeline service for CoachOS.
+Standalone FastAPI service for athlete profiles, coach-athlete relationships, goals, and athlete timeline records.
 
-## Responsibilities
+## Service Purpose
 
-- Athlete CRUD
-- Athlete profile fields
-- Coach-athlete relationship
-- Goals and development notes
-- Position and sport context
-- Injury notes
-- Athlete timeline events
+The Athlete Service owns athlete development data after authentication has already happened in the Auth Service. It validates JWT bearer tokens locally, derives coach identity from token claims, and never stores passwords or authentication credentials.
 
-## Tech Stack
+## Architecture
 
-- Python
-- FastAPI
-- PostgreSQL
-- SQLAlchemy
-- Alembic
-- Docker
+The service follows a clean, layered structure:
 
-## Project Structure
-
-- `app/api`: API route modules
-- `app/core`: configuration
-- `app/db`: database connection and session setup
-- `app/models`: database models
-- `app/schemas`: request and response schemas
-- `app/services`: athlete business logic
-- `app/utils`: shared utilities
+- `app/api/v1/endpoints`: FastAPI route handlers
+- `app/dependencies`: authentication and access-control dependencies
+- `app/services`: domain use cases and transaction boundaries
+- `app/repositories`: SQLAlchemy query code
+- `app/models`: SQLAlchemy ORM models and enums
+- `app/schemas`: Pydantic request and response models
+- `app/core`: configuration, security, logging, and exception handling
+- `app/db`: database engine, session, and metadata
 - `alembic`: database migrations
-- `tests`: service tests
+- `tests`: PostgreSQL integration tests
 
-## Environment
+Endpoint handlers stay thin. Business rules live in services, and SQL queries live in repositories.
+
+## Owned Data
+
+This service owns:
+
+- Athlete profiles
+- Coach-athlete relationships
+- Athlete goals
+- Athlete timeline records
+
+This service does not own:
+
+- Authentication signup or login
+- Passwords
+- JWT issuance
+- Video files
+- AI reviews
+- Drills
+- Workout records
+- Cross-service database joins
+
+## API Endpoint Summary
+
+Health:
+
+- `GET /health/live`
+- `GET /health/ready`
+- `GET /health`
+
+Athletes:
+
+- `POST /api/v1/athletes`
+- `GET /api/v1/athletes`
+- `GET /api/v1/athletes/{athlete_id}`
+- `PATCH /api/v1/athletes/{athlete_id}`
+- `DELETE /api/v1/athletes/{athlete_id}`
+- `POST /api/v1/athletes/{athlete_id}/restore`
+
+Goals:
+
+- `POST /api/v1/athletes/{athlete_id}/goals`
+- `GET /api/v1/athletes/{athlete_id}/goals`
+- `GET /api/v1/athletes/{athlete_id}/goals/{goal_id}`
+- `PATCH /api/v1/athletes/{athlete_id}/goals/{goal_id}`
+- `DELETE /api/v1/athletes/{athlete_id}/goals/{goal_id}`
+
+Timeline:
+
+- `GET /api/v1/athletes/{athlete_id}/timeline`
+
+## Authentication Expectations
+
+The Auth Service issues JWT access tokens. The Athlete Service validates bearer tokens locally using the shared `JWT_SECRET_KEY` during MVP.
+
+Expected token claims:
+
+- `sub`: Auth Service user UUID
+- `email`: authenticated user's email
+- `role`: authenticated user's role
+- `exp`: token expiration
+
+For transition compatibility, the validator also accepts `user_id` when `sub` is absent.
+
+Only `role=coach` can access MVP endpoints. Athlete resources return `404` when they are missing or not accessible to the current coach.
+
+## Environment Setup
 
 Copy `.env.example` to `.env` for local development. Do not commit `.env`.
 
-Required values:
+Required variables:
 
 - `APP_NAME`
-- `ENVIRONMENT`
+- `APP_ENV`
+- `API_V1_PREFIX`
 - `DATABASE_URL`
+- `JWT_SECRET_KEY`
+- `JWT_ALGORITHM`
+- `LOG_LEVEL`
+- `CORS_ORIGINS`
+- `DEFAULT_PAGE_SIZE`
+- `MAX_PAGE_SIZE`
 
-## Running Locally
+Validation range variables:
+
+- `GRADUATION_YEAR_MIN`
+- `GRADUATION_YEAR_MAX`
+
+## Local Startup
 
 ```bash
 pip install -r requirements.txt
 uvicorn app.main:app --reload
 ```
 
-The service exposes:
+OpenAPI docs:
 
-- Local app: `http://localhost:8000`
-- Docker Compose port: `http://localhost:8002`
-- Health check: `GET /health`
+- `http://localhost:8000/docs`
+- `http://localhost:8000/redoc`
 
-## Docker
+## Alembic Migration Commands
+
+```bash
+alembic upgrade head
+alembic downgrade -1
+alembic current
+```
+
+## Docker Startup
 
 ```bash
 docker compose up --build
 ```
 
-## Planned API
+The service is exposed at:
 
-- `GET /athletes`
-- `POST /athletes`
-- `GET /athletes/{athlete_id}`
-- `PATCH /athletes/{athlete_id}`
-- `DELETE /athletes/{athlete_id}`
-- `GET /athletes/{athlete_id}/timeline`
+- `http://localhost:8002`
 
-## Testing
+The included Compose file starts a local PostgreSQL container on host port `5433`.
+
+## Test Commands
+
+Tests are PostgreSQL integration tests and require `TEST_DATABASE_URL`.
 
 ```bash
+export TEST_DATABASE_URL=postgresql+psycopg://postgres:postgres@localhost:5433/coachos_athlete_test
 pytest
 ```
 
-## Status
+Quality commands:
 
-Stage 0: service skeleton created. Athlete models, relationship logic, timeline endpoints, and tests are next.
+```bash
+ruff check .
+black --check .
+mypy app
+```
+
+## Database Tables
+
+- `athletes`
+- `athlete_secondary_positions`
+- `coach_athlete_relationships`
+- `athlete_goals`
+- `timeline_events`
+
+Relationships:
+
+- A coach relationship references an external Auth Service user UUID and a local athlete.
+- A goal belongs to an athlete.
+- A timeline event belongs to an athlete.
+- Secondary positions are normalized child rows for each athlete.
+
+## Current Limitations
+
+- Uses shared-secret JWT validation for MVP.
+- No public endpoint exists for cross-service timeline event creation yet.
+- No athlete portal login.
+- No media, AI review, drill, or workout ownership in this service.
+- Tests require an available PostgreSQL database.
+
+## Future Service Integrations
+
+- Media Service can create timeline events for video uploads through an internal interface.
+- AI Review Service can create timeline events for review generation and coach approval.
+- Drill Service can link assignments into athlete timelines later.
+- Auth Service can move JWT verification to asymmetric public-key validation without changing endpoint code.

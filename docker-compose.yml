@@ -1,7 +1,29 @@
 services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: coachos_athlete
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432"
+    volumes:
+      - athlete-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d coachos_athlete"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   athlete-service:
     build: .
     env_file:
       - .env.example
+    depends_on:
+      db:
+        condition: service_healthy
     ports:
       - "8002:8000"
+
+volumes:
+  athlete-postgres-data:
