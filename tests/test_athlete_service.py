@@ -252,7 +252,9 @@ def test_validation_failures(client: TestClient) -> None:
     assert response.status_code == 422
 
 
-def test_transaction_rolls_back_when_timeline_creation_fails(client: TestClient, db_session: Session, monkeypatch) -> None:
+def test_transaction_rolls_back_when_timeline_creation_fails(
+    client: TestClient, db_session: Session, monkeypatch
+) -> None:
     from app.services.timeline_service import TimelineService
 
     def fail_timeline(*args, **kwargs):

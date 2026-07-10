@@ -43,9 +43,7 @@ class AthleteRepository:
     def get_by_id(self, athlete_id: UUID) -> Athlete | None:
         """Return an athlete by ID."""
         statement = (
-            select(Athlete)
-            .options(selectinload(Athlete.secondary_position_rows))
-            .where(Athlete.id == athlete_id)
+            select(Athlete).options(selectinload(Athlete.secondary_position_rows)).where(Athlete.id == athlete_id)
         )
         return self.db.execute(statement).scalar_one_or_none()
 
@@ -102,8 +100,7 @@ class AthleteRepository:
     def replace_secondary_positions(self, athlete: Athlete, positions: list[Position]) -> None:
         """Replace secondary position rows for an athlete."""
         athlete.secondary_position_rows = [
-            AthleteSecondaryPosition(athlete_id=athlete.id, position=position)
-            for position in positions
+            AthleteSecondaryPosition(athlete_id=athlete.id, position=position) for position in positions
         ]
 
     def _base_list_statement(self, filters: AthleteListFilters) -> Select[tuple[Athlete]]:

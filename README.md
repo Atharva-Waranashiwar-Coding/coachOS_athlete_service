@@ -187,3 +187,9 @@ Relationships:
 - AI Review Service can create timeline events for review generation and coach approval.
 - Drill Service can link assignments into athlete timelines later.
 - Auth Service can move JWT verification to asymmetric public-key validation without changing endpoint code.
+
+## Unified Timeline
+
+Athlete Service owns canonical timeline records. Internal producers call `POST /internal/v1/athletes/{athlete_id}/timeline-events` using `X-Service-Name` and `X-Service-Token`. Stable external event IDs make identical retries return the existing row and changed-payload reuse return `409`. Public coach queries filter by category, type, source, visibility, and date range.
+
+Configure `INTERNAL_API_PREFIX` and JSON `INTERNAL_SERVICE_TOKENS`, then run `alembic upgrade head`.

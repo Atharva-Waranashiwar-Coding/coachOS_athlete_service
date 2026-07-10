@@ -21,9 +21,7 @@ class JsonFormatter(logging.Formatter):
             "message": record.getMessage(),
         }
         extra = {
-            key: value
-            for key, value in record.__dict__.items()
-            if key not in reserved and not key.startswith("_")
+            key: value for key, value in record.__dict__.items() if key not in reserved and not key.startswith("_")
         }
         if extra:
             payload["extra"] = extra

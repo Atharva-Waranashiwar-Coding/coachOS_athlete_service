@@ -99,3 +99,19 @@ class TimelineEventType(str, enum.Enum):
     GOAL_UPDATED = "goal_updated"
     GOAL_COMPLETED = "goal_completed"
     GOAL_CANCELLED = "goal_cancelled"
+
+
+class EventCategory(str, enum.Enum):
+    PROFILE = "profile"
+    GOAL = "goal"
+    PRACTICE = "practice"
+    VIDEO = "video"
+    AI_REVIEW = "ai_review"
+    COACH_REVIEW = "coach_review"
+    DRILL = "drill"
+    SYSTEM = "system"
+
+
+class TimelineVisibility(str, enum.Enum):
+    COACH_ONLY = "coach_only"
+    ATHLETE_VISIBLE = "athlete_visible"

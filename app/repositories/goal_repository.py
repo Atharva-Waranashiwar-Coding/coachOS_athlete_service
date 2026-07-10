@@ -48,7 +48,9 @@ class GoalRepository:
         total = self.db.execute(select(func.count()).select_from(statement.subquery())).scalar_one()
         active_order = case((AthleteGoal.status == GoalStatus.ACTIVE, 0), else_=1)
         statement = (
-            statement.order_by(active_order, asc(AthleteGoal.priority), asc(AthleteGoal.target_date), asc(AthleteGoal.created_at))
+            statement.order_by(
+                active_order, asc(AthleteGoal.priority), asc(AthleteGoal.target_date), asc(AthleteGoal.created_at)
+            )
             .offset((filters.page - 1) * filters.page_size)
             .limit(filters.page_size)
         )

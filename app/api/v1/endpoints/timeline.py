@@ -7,14 +7,15 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
+from app.core.exceptions import NotFoundError
 from app.db.session import get_db
 from app.dependencies.auth import require_coach
+from app.models.enums import EventCategory, TimelineVisibility
 from app.repositories.athlete_repository import AthleteRepository
 from app.repositories.timeline_repository import TimelineListFilters
 from app.schemas.auth import CurrentUser
 from app.schemas.timeline import TimelineListResponse
 from app.services.timeline_service import TimelineService
-from app.core.exceptions import NotFoundError
 
 router = APIRouter(prefix="/athletes/{athlete_id}/timeline", tags=["timeline"])
 
@@ -33,8 +34,11 @@ def list_timeline(
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=settings.default_page_size, ge=1, le=settings.max_page_size),
     event_type: str | None = Query(default=None, max_length=100),
+    event_category: EventCategory | None = Query(default=None),
+    source_service: str | None = Query(default=None, max_length=100),
     start_date: datetime | None = Query(default=None),
     end_date: datetime | None = Query(default=None),
+    visibility: TimelineVisibility | None = Query(default=None),
 ) -> TimelineListResponse:
     """List athlete timeline events newest first."""
     if AthleteRepository(db).get_accessible_for_coach(athlete_id, current_user.id) is None:
@@ -44,7 +48,10 @@ def list_timeline(
         page=page,
         page_size=page_size,
         event_type=event_type,
+        event_category=event_category,
+        source_service=source_service,
         start_date=start_date,
         end_date=end_date,
+        visibility=visibility,
     )
     return timeline_service.list_events(filters)

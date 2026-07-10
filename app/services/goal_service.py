@@ -70,7 +70,9 @@ class GoalService:
             raise NotFoundError("Goal not found.")
         return GoalResponse.model_validate(goal)
 
-    def update_goal(self, athlete_id: UUID, goal_id: UUID, payload: GoalUpdate, current_user: CurrentUser) -> GoalResponse:
+    def update_goal(
+        self, athlete_id: UUID, goal_id: UUID, payload: GoalUpdate, current_user: CurrentUser
+    ) -> GoalResponse:
         """Update a goal as primary coach and create a timeline event."""
         self._require_primary_coach(athlete_id, current_user.id)
         goal = self.goal_repository.get_for_athlete(athlete_id, goal_id)

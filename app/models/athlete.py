@@ -121,11 +121,17 @@ class CoachAthleteRelationship(Base):
         nullable=False,
     )
     relationship_role: Mapped[RelationshipRole] = mapped_column(
-        Enum(RelationshipRole, name="relationship_role", values_callable=lambda values: [item.value for item in values]),
+        Enum(
+            RelationshipRole, name="relationship_role", values_callable=lambda values: [item.value for item in values]
+        ),
         nullable=False,
     )
     status: Mapped[RelationshipStatus] = mapped_column(
-        Enum(RelationshipStatus, name="relationship_status", values_callable=lambda values: [item.value for item in values]),
+        Enum(
+            RelationshipStatus,
+            name="relationship_status",
+            values_callable=lambda values: [item.value for item in values],
+        ),
         default=RelationshipStatus.ACTIVE,
         nullable=False,
     )

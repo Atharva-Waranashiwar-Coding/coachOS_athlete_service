@@ -5,12 +5,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
+from app.api.internal.timeline import router as internal_timeline_router
 from app.api.v1.router import api_router
 from app.core.config import settings
 from app.core.exceptions import register_exception_handlers
 from app.core.logging import configure_logging
 from app.db.session import SessionLocal
-
 
 configure_logging()
 
@@ -31,6 +31,7 @@ if settings.cors_origins:
     )
 
 app.include_router(api_router, prefix=settings.api_v1_prefix)
+app.include_router(internal_timeline_router, prefix=settings.internal_api_prefix)
 
 
 @app.get("/health/live", tags=["health"])
