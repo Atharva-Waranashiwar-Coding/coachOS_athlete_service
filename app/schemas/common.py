@@ -1,10 +1,8 @@
 """Shared API schemas."""
 
-from typing import Any, Generic, TypeVar
+from typing import Any
 
 from pydantic import BaseModel, Field
-
-T = TypeVar("T")
 
 
 class ErrorDetail(BaseModel):
@@ -21,7 +19,7 @@ class ErrorResponse(BaseModel):
     error: ErrorDetail
 
 
-class PaginatedResponse(BaseModel, Generic[T]):
+class PaginatedResponse[T](BaseModel):
     """Generic paginated response envelope."""
 
     items: list[T]

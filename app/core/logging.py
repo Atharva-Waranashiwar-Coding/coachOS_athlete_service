@@ -3,10 +3,13 @@
 import json
 import logging
 import sys
+from contextvars import ContextVar
 from datetime import UTC, datetime
 from typing import Any
 
 from app.core.config import settings
+
+request_id_context: ContextVar[str | None] = ContextVar("request_id", default=None)
 
 
 class JsonFormatter(logging.Formatter):
@@ -17,11 +20,17 @@ class JsonFormatter(logging.Formatter):
         payload: dict[str, Any] = {
             "timestamp": datetime.now(UTC).isoformat(),
             "level": record.levelname,
+            "service": settings.app_name,
             "logger": record.name,
             "message": record.getMessage(),
         }
+        request_id = request_id_context.get()
+        if request_id:
+            payload["request_id"] = request_id
         extra = {
-            key: value for key, value in record.__dict__.items() if key not in reserved and not key.startswith("_")
+            key: value
+            for key, value in record.__dict__.items()
+            if key not in reserved and key != "color_message" and not key.startswith("_")
         }
         if extra:
             payload["extra"] = extra

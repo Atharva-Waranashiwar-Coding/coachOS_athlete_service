@@ -141,6 +141,9 @@ Required variables:
 - `JWT_ALGORITHM`
 - `LOG_LEVEL`
 - `CORS_ORIGINS`
+- `METRICS_ENABLED`
+- `REQUEST_ID_HEADER`
+- `RUN_MIGRATIONS`
 - `DEFAULT_PAGE_SIZE`
 - `MAX_PAGE_SIZE`
 - `AI_REVIEW_SERVICE_URL`
@@ -210,6 +213,17 @@ The service is exposed at:
 - `http://localhost:8002`
 
 The included Compose file starts a local PostgreSQL container on host port `5433`.
+
+The API container automatically executes `alembic upgrade head`, then starts Uvicorn as a non-root user. Worker containers must set `RUN_MIGRATIONS=false`.
+
+## Production Operations
+
+- `GET /health/live` reports process liveness.
+- `GET /health/ready` verifies PostgreSQL connectivity.
+- `GET /metrics` exposes Prometheus HTTP metrics.
+- `X-Request-ID` is accepted or generated, returned to clients, and included in JSON stdout logs.
+
+The central `coachos-infra` repository provides the hardened production Compose topology, Nginx CORS and rate boundaries, PostgreSQL exporter, Grafana dashboard, Loki collection, automated deployment, and logical database backup/restore scripts.
 
 ## Test Commands
 

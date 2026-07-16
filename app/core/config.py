@@ -17,6 +17,8 @@ class Settings(BaseSettings):
     jwt_secret_key: str = Field(alias="JWT_SECRET_KEY")
     jwt_algorithm: str = Field(default="HS256", alias="JWT_ALGORITHM")
     log_level: str = Field(default="INFO", alias="LOG_LEVEL")
+    metrics_enabled: bool = Field(default=True, alias="METRICS_ENABLED")
+    request_id_header: str = Field(default="X-Request-ID", alias="REQUEST_ID_HEADER")
     cors_origins: list[str] = Field(default_factory=list, alias="CORS_ORIGINS")
     default_page_size: int = Field(default=20, alias="DEFAULT_PAGE_SIZE", gt=0)
     max_page_size: int = Field(default=100, alias="MAX_PAGE_SIZE", gt=0, le=500)
