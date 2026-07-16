@@ -39,7 +39,8 @@ jobs:
       - run: black --check app tests alembic
       - run: ruff check app tests alembic
       - run: mypy app
-      - run: pytest -q
+      - name: Run tests with summary
+        run: pytest -q
 
   image:
     runs-on: ubuntu-latest
