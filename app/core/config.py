@@ -25,6 +25,8 @@ class Settings(BaseSettings):
     internal_api_prefix: str = Field(default="/internal/v1", alias="INTERNAL_API_PREFIX")
     internal_service_tokens: dict[str, str] = Field(default_factory=dict, alias="INTERNAL_SERVICE_TOKENS")
     ai_review_service_url: str = Field(default="http://localhost:8004", alias="AI_REVIEW_SERVICE_URL")
+    ai_review_service_internal_url: str = Field(default="http://localhost:8004", alias="AI_REVIEW_SERVICE_INTERNAL_URL")
+    media_service_internal_url: str = Field(default="http://localhost:8003", alias="MEDIA_SERVICE_INTERNAL_URL")
     upstream_timeout_seconds: float = Field(default=5, alias="UPSTREAM_TIMEOUT_SECONDS", gt=0)
     max_drill_title_characters: int = Field(default=200, alias="MAX_DRILL_TITLE_CHARACTERS")
     max_drill_description_characters: int = Field(default=5000, alias="MAX_DRILL_DESCRIPTION_CHARACTERS")
@@ -41,6 +43,23 @@ class Settings(BaseSettings):
     )
     athlete_account_link_required: bool = Field(default=True, alias="ATHLETE_ACCOUNT_LINK_REQUIRED")
     max_athlete_note_characters: int = Field(default=3000, alias="MAX_ATHLETE_NOTE_CHARACTERS", gt=0)
+    insight_default_range_days: int = Field(default=30, alias="INSIGHT_DEFAULT_RANGE_DAYS", gt=0, le=365)
+    insight_max_range_days: int = Field(default=365, alias="INSIGHT_MAX_RANGE_DAYS", gt=0, le=730)
+    insight_trend_min_sample_size: int = Field(default=3, alias="INSIGHT_TREND_MIN_SAMPLE_SIZE", gt=0)
+    insight_trend_threshold_percentage_points: float = Field(
+        default=10, alias="INSIGHT_TREND_THRESHOLD_PERCENTAGE_POINTS", gt=0, le=100
+    )
+    insight_recurring_area_min_reviews: int = Field(default=2, alias="INSIGHT_RECURRING_AREA_MIN_REVIEWS", gt=0)
+    insight_low_activity_days: int = Field(default=14, alias="INSIGHT_LOW_ACTIVITY_DAYS", gt=0)
+    insight_incomplete_assignment_threshold: int = Field(
+        default=5, alias="INSIGHT_INCOMPLETE_ASSIGNMENT_THRESHOLD", gt=0
+    )
+    insight_repeated_area_review_threshold: int = Field(default=3, alias="INSIGHT_REPEATED_AREA_REVIEW_THRESHOLD", gt=0)
+    insight_repeated_area_window_days: int = Field(default=60, alias="INSIGHT_REPEATED_AREA_WINDOW_DAYS", gt=0)
+    insight_goal_due_soon_days: int = Field(default=14, alias="INSIGHT_GOAL_DUE_SOON_DAYS", gt=0)
+    insight_no_feedback_days: int = Field(default=30, alias="INSIGHT_NO_FEEDBACK_DAYS", gt=0)
+    insight_upstream_timeout_seconds: float = Field(default=5, alias="INSIGHT_UPSTREAM_TIMEOUT_SECONDS", gt=0)
+    insight_max_batch_athletes: int = Field(default=100, alias="INSIGHT_MAX_BATCH_ATHLETES", gt=0, le=500)
 
     model_config = SettingsConfigDict(
         env_file=".env",

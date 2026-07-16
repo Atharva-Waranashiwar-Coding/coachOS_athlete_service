@@ -478,7 +478,7 @@ class AthleteSelfService:
         metadata = {
             key: value
             for key, value in event.metadata_json.items()
-            if key in SAFE_TIMELINE_METADATA_KEYS and (value is None or isinstance(value, (str, int, bool)))
+            if key in SAFE_TIMELINE_METADATA_KEYS and (value is None or isinstance(value, str | int | bool))
         }
         return AthleteTimelineEventResponse(
             id=event.id,

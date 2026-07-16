@@ -51,6 +51,8 @@ class DrillAssignment(Base):
         Index("ix_assignments_drill", "drill_id"),
         Index("ix_assignments_athlete_status", "athlete_id", "status"),
         Index("ix_assignments_athlete_assigned", "athlete_id", "assigned_at"),
+        Index("ix_assignments_athlete_due_status", "athlete_id", "due_date", "status"),
+        Index("ix_assignments_athlete_completed", "athlete_id", "completed_at"),
     )
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)

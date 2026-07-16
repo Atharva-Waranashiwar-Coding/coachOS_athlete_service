@@ -19,6 +19,8 @@ class AthleteGoal(Base):
     __table_args__ = (
         CheckConstraint("priority >= 1 AND priority <= 5", name="ck_goal_priority_range"),
         Index("ix_goals_athlete_status", "athlete_id", "status"),
+        Index("ix_goals_athlete_target_status", "athlete_id", "target_date", "status"),
+        Index("ix_goals_athlete_completed", "athlete_id", "completed_at"),
     )
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)

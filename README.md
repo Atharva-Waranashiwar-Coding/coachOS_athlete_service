@@ -106,6 +106,12 @@ Athlete self-service:
 - `POST .../{assignment_id}/progress`
 - `POST .../{assignment_id}/complete`
 
+Coach progress insights:
+
+- `GET /api/v1/athletes/{athlete_id}/insights`
+- `GET /api/v1/coach/insights`
+- `GET /api/v1/coach/insights/athletes-needing-attention`
+
 ## Authentication Expectations
 
 The Auth Service issues JWT access tokens. The Athlete Service validates bearer tokens locally using the shared `JWT_SECRET_KEY` during MVP.
@@ -152,6 +158,21 @@ Required variables:
 - `ATHLETE_DASHBOARD_RECENT_ITEMS_LIMIT`
 - `ATHLETE_ACCOUNT_LINK_REQUIRED`
 - `MAX_ATHLETE_NOTE_CHARACTERS`
+- `AI_REVIEW_SERVICE_INTERNAL_URL`
+- `MEDIA_SERVICE_INTERNAL_URL`
+- `INSIGHT_DEFAULT_RANGE_DAYS`
+- `INSIGHT_MAX_RANGE_DAYS`
+- `INSIGHT_TREND_MIN_SAMPLE_SIZE`
+- `INSIGHT_TREND_THRESHOLD_PERCENTAGE_POINTS`
+- `INSIGHT_RECURRING_AREA_MIN_REVIEWS`
+- `INSIGHT_LOW_ACTIVITY_DAYS`
+- `INSIGHT_INCOMPLETE_ASSIGNMENT_THRESHOLD`
+- `INSIGHT_REPEATED_AREA_REVIEW_THRESHOLD`
+- `INSIGHT_REPEATED_AREA_WINDOW_DAYS`
+- `INSIGHT_GOAL_DUE_SOON_DAYS`
+- `INSIGHT_NO_FEEDBACK_DAYS`
+- `INSIGHT_UPSTREAM_TIMEOUT_SECONDS`
+- `INSIGHT_MAX_BATCH_ATHLETES`
 
 Validation range variables:
 
@@ -229,7 +250,6 @@ Relationships:
 ## Current Limitations
 
 - Uses shared-secret JWT validation for MVP.
-- No public endpoint exists for cross-service timeline event creation yet.
 - No media, AI review, or workout-plan ownership in this service.
 - Tests require an available PostgreSQL database.
 
@@ -284,4 +304,34 @@ Stage 9 migration:
 
 ```bash
 alembic upgrade 20260716_0004
+```
+
+## Coach Progress Insights
+
+Athlete Service is the Stage 10 aggregation owner. It combines authoritative local drill, goal, assignment activity, and timeline records with safe approved-review and practice-activity summaries from AI Review and Media. It never reads another service's database and never makes one upstream request per athlete.
+
+Time ranges support `7d`, `30d`, `60d`, `90d`, and bounded custom dates. Day boundaries are resolved in the requested IANA timezone and converted to start-inclusive, end-exclusive UTC timestamps. The comparison period has the same duration immediately before the current period.
+
+Metric definitions:
+
+- Drill completion rate: completed non-cancelled assignments divided by non-cancelled assignments created before period end.
+- On-time completion rate: qualifying due-dated completions completed by due-date end of day.
+- Goal completion rate: completed non-cancelled goals divided by non-cancelled goals created before period end.
+- Empty denominators and unavailable upstream ratios return `null`, not zero.
+- Trends require the configured minimum sample in both periods and compare percentage-point change against the configured threshold.
+- Recurring feedback counts a normalized area at most once per approved review.
+
+Normalization prefers a valid `taxonomy_code`, then `app/core/insight_aliases.v1.json`, then a conservative lowercased title. The API describes changes in approved-feedback mentions and does not infer objective skill improvement.
+
+Attention flags are deterministic: overdue drills, multiple incomplete assignments, limited recent activity, repeated high-priority approved feedback, goals due soon, overdue goals, and recent practice without recent approved feedback. Rules requiring unavailable review or media data are suppressed.
+
+If AI Review or Media times out, local insights still return with `partial: true`, service availability booleans, and safe warning codes. Database migration `20260716_0005` adds composite indexes for assignment due/completion, goal target/completion, and timeline visibility/occurrence queries. No Redis, analytics snapshot table, athlete ranking, prediction, or opaque score is used.
+
+Stage 10 quality:
+
+```bash
+black --check app tests alembic
+ruff check app tests alembic
+mypy app
+pytest -q
 ```

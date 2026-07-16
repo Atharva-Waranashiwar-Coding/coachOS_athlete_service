@@ -26,6 +26,7 @@ class TimelineEvent(Base):
         CheckConstraint("length(trim(event_type)) > 0", name="ck_timeline_event_type_nonempty"),
         Index("ix_timeline_athlete_occurred_created", "athlete_id", text("occurred_at DESC"), text("created_at DESC")),
         Index("ix_timeline_athlete_category", "athlete_id", "event_category"),
+        Index("ix_timeline_athlete_visibility_occurred", "athlete_id", "visibility", "occurred_at"),
         Index("ix_timeline_athlete_event_type", "athlete_id", "event_type"),
         Index("ix_timeline_source_entity", "source_entity_type", "source_entity_id"),
         Index(

@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "aliases": {
+    "swing timing": "hitting.timing",
+    "timing consistency": "hitting.timing",
+    "lower body balance": "hitting.balance",
+    "release point consistency": "pitching.release_consistency",
+    "pitch command": "pitching.command",
+    "fielding footwork": "fielding.footwork",
+    "throwing accuracy": "throwing.accuracy",
+    "decision making": "mental.decision_making"
+  }
+}
