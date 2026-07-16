@@ -31,7 +31,7 @@ class Athlete(Base):
     email: Mapped[str | None] = mapped_column(String(320), index=True)
     phone: Mapped[str | None] = mapped_column(String(50))
     primary_position: Mapped[Position | None] = mapped_column(
-        Enum(Position, name="position", values_callable=lambda values: [item.value for item in values])
+        Enum(Position, name="athlete_position", values_callable=lambda values: [item.value for item in values])
     )
     bats: Mapped[BatSide | None] = mapped_column(
         Enum(BatSide, name="bat_side", values_callable=lambda values: [item.value for item in values])
@@ -91,7 +91,7 @@ class AthleteSecondaryPosition(Base):
         primary_key=True,
     )
     position: Mapped[Position] = mapped_column(
-        Enum(Position, name="position", values_callable=lambda values: [item.value for item in values]),
+        Enum(Position, name="athlete_position", values_callable=lambda values: [item.value for item in values]),
         primary_key=True,
     )
     created_at: Mapped[datetime] = mapped_column(

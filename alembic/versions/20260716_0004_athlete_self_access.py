@@ -12,9 +12,11 @@ depends_on = None
 
 
 def upgrade() -> None:
-    link_status = postgresql.ENUM("invited", "active", "disabled", name="athlete_user_link_status")
-    actor_type = postgresql.ENUM("coach", "athlete", name="assignment_actor_type")
-    note_visibility = postgresql.ENUM("coach_only", "athlete_visible", name="activity_note_visibility")
+    link_status = postgresql.ENUM("invited", "active", "disabled", name="athlete_user_link_status", create_type=False)
+    actor_type = postgresql.ENUM("coach", "athlete", name="assignment_actor_type", create_type=False)
+    note_visibility = postgresql.ENUM(
+        "coach_only", "athlete_visible", name="activity_note_visibility", create_type=False
+    )
     for enum in (link_status, actor_type, note_visibility):
         enum.create(op.get_bind(), checkfirst=True)
 

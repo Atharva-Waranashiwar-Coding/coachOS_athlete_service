@@ -53,6 +53,20 @@ class DrillAssignmentService:
         user: CurrentUser,
         bearer_token: str,
     ) -> DrillAssignmentResponse:
+        """Create an assignment and all related records atomically."""
+        try:
+            return self._create(athlete, payload, user, bearer_token)
+        except Exception:
+            self.db.rollback()
+            raise
+
+    def _create(
+        self,
+        athlete: Athlete,
+        payload: DrillAssignmentCreate,
+        user: CurrentUser,
+        bearer_token: str,
+    ) -> DrillAssignmentResponse:
         recommendation: ApprovedRecommendation | None = None
         if isinstance(payload, ReviewAssignmentCreate):
             approved = self.ai_reviews.get_approved_review(payload.source_review_id, bearer_token)

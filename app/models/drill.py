@@ -11,7 +11,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 from app.db.session import Base
 from app.models.enums import DrillCategory, DrillDifficulty, DrillStatus, DrillVisibility
 
-Json = JSON().with_variant(JSONB, "postgresql")
+Json = JSONB().with_variant(JSON(), "sqlite")
 
 
 class Drill(Base):

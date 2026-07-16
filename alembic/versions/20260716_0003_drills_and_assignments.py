@@ -27,12 +27,18 @@ def upgrade() -> None:
         "mental",
         "general",
         name="drill_category",
+        create_type=False,
     )
-    difficulty = postgresql.ENUM("beginner", "intermediate", "advanced", name="drill_difficulty")
-    visibility = postgresql.ENUM("private", "organization", "system", name="drill_visibility")
-    drill_status = postgresql.ENUM("active", "archived", name="drill_status")
+    difficulty = postgresql.ENUM("beginner", "intermediate", "advanced", name="drill_difficulty", create_type=False)
+    visibility = postgresql.ENUM("private", "organization", "system", name="drill_visibility", create_type=False)
+    drill_status = postgresql.ENUM("active", "archived", name="drill_status", create_type=False)
     assignment_status = postgresql.ENUM(
-        "assigned", "in_progress", "completed", "cancelled", name="drill_assignment_status"
+        "assigned",
+        "in_progress",
+        "completed",
+        "cancelled",
+        name="drill_assignment_status",
+        create_type=False,
     )
     activity_type = postgresql.ENUM(
         "assigned",
@@ -42,6 +48,7 @@ def upgrade() -> None:
         "completed",
         "cancelled",
         name="drill_activity_type",
+        create_type=False,
     )
     for enum in (category, difficulty, visibility, drill_status, assignment_status, activity_type):
         enum.create(op.get_bind(), checkfirst=True)

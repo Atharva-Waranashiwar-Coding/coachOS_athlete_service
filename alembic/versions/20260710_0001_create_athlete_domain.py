@@ -26,8 +26,8 @@ def _create_enum(name: str, values: tuple[str, ...]) -> postgresql.ENUM:
 
 def upgrade() -> None:
     """Create athlete domain tables, constraints, and indexes."""
-    position = _create_enum(
-        "position",
+    athlete_position = _create_enum(
+        "athlete_position",
         (
             "pitcher",
             "catcher",
@@ -61,7 +61,7 @@ def upgrade() -> None:
         sa.Column("date_of_birth", sa.Date(), nullable=True),
         sa.Column("email", sa.String(length=320), nullable=True),
         sa.Column("phone", sa.String(length=50), nullable=True),
-        sa.Column("primary_position", position, nullable=True),
+        sa.Column("primary_position", athlete_position, nullable=True),
         sa.Column("bats", bat_side, nullable=True),
         sa.Column("throws", throw_side, nullable=True),
         sa.Column("graduation_year", sa.Integer(), nullable=True),
@@ -85,7 +85,7 @@ def upgrade() -> None:
     op.create_table(
         "athlete_secondary_positions",
         sa.Column("athlete_id", sa.UUID(), sa.ForeignKey("athletes.id", ondelete="CASCADE"), primary_key=True),
-        sa.Column("position", position, primary_key=True),
+        sa.Column("position", athlete_position, primary_key=True),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
     )
 
@@ -168,6 +168,7 @@ def downgrade() -> None:
         "athlete_status",
         "throw_side",
         "bat_side",
-        "position",
+        "athlete_position",
     ):
         postgresql.ENUM(name=enum_name).drop(op.get_bind(), checkfirst=True)
+    op.execute('DROP TYPE IF EXISTS "position"')

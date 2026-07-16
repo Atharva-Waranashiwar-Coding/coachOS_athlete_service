@@ -2,9 +2,10 @@
 
 import json
 from functools import lru_cache
+from typing import Annotated
 
 from pydantic import Field, field_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -19,7 +20,7 @@ class Settings(BaseSettings):
     log_level: str = Field(default="INFO", alias="LOG_LEVEL")
     metrics_enabled: bool = Field(default=True, alias="METRICS_ENABLED")
     request_id_header: str = Field(default="X-Request-ID", alias="REQUEST_ID_HEADER")
-    cors_origins: list[str] = Field(default_factory=list, alias="CORS_ORIGINS")
+    cors_origins: Annotated[list[str], NoDecode] = Field(default_factory=list, alias="CORS_ORIGINS")
     default_page_size: int = Field(default=20, alias="DEFAULT_PAGE_SIZE", gt=0)
     max_page_size: int = Field(default=100, alias="MAX_PAGE_SIZE", gt=0, le=500)
     graduation_year_min: int = Field(default=2020, alias="GRADUATION_YEAR_MIN")
