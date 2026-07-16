@@ -13,11 +13,15 @@ from app.schemas.auth import CurrentUser
 bearer_scheme = HTTPBearer(auto_error=False)
 
 
-def get_current_user(credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme)) -> CurrentUser:
-    """Validate a bearer token and return the current user."""
+def get_bearer_token(credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme)) -> str:
     if credentials is None or credentials.scheme.lower() != "bearer":
         raise UnauthorizedError("Bearer authentication is required.")
-    return token_validator.validate_access_token(credentials.credentials)
+    return credentials.credentials
+
+
+def get_current_user(token: str = Depends(get_bearer_token)) -> CurrentUser:
+    """Validate a bearer token and return the current user."""
+    return token_validator.validate_access_token(token)
 
 
 def require_roles(*roles: UserRole) -> Callable[[CurrentUser], CurrentUser]:
@@ -33,4 +37,9 @@ def require_roles(*roles: UserRole) -> Callable[[CurrentUser], CurrentUser]:
 
 def require_coach(current_user: CurrentUser = Depends(require_roles(UserRole.COACH))) -> CurrentUser:
     """Require an authenticated coach user."""
+    return current_user
+
+
+def require_athlete(current_user: CurrentUser = Depends(require_roles(UserRole.ATHLETE))) -> CurrentUser:
+    """Require an authenticated athlete user."""
     return current_user

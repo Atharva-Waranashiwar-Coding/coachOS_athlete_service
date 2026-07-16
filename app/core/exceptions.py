@@ -62,6 +62,14 @@ class ConflictError(AppError):
     message = "Resource conflict."
 
 
+class UpstreamServiceError(AppError):
+    """Raised when a required upstream service cannot fulfill a request."""
+
+    status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+    code = "upstream_service_unavailable"
+    message = "A required upstream service is unavailable."
+
+
 def error_response(status_code: int, code: str, message: str, details: dict | None = None) -> JSONResponse:
     """Build the service-wide error envelope."""
     return JSONResponse(

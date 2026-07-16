@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
+from app.api.internal.athlete_user_links import router as internal_athlete_links_router
 from app.api.internal.timeline import router as internal_timeline_router
 from app.api.v1.router import api_router
 from app.core.config import settings
@@ -32,6 +33,7 @@ if settings.cors_origins:
 
 app.include_router(api_router, prefix=settings.api_v1_prefix)
 app.include_router(internal_timeline_router, prefix=settings.internal_api_prefix)
+app.include_router(internal_athlete_links_router, prefix=settings.internal_api_prefix)
 
 
 @app.get("/health/live", tags=["health"])

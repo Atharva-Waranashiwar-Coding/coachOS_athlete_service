@@ -1,6 +1,6 @@
 # CoachOS Athlete Service
 
-Standalone FastAPI service for athlete profiles, coach-athlete relationships, goals, and athlete timeline records.
+Standalone FastAPI service for athlete profiles, coach-athlete relationships, goals, reusable drills, athlete drill assignments, and athlete timeline records.
 
 ## Service Purpose
 
@@ -31,6 +31,8 @@ This service owns:
 - Coach-athlete relationships
 - Athlete goals
 - Athlete timeline records
+- Private coach drill library records
+- Athlete drill assignments and assignment activity
 
 This service does not own:
 
@@ -39,7 +41,6 @@ This service does not own:
 - JWT issuance
 - Video files
 - AI reviews
-- Drills
 - Workout records
 - Cross-service database joins
 
@@ -72,6 +73,39 @@ Timeline:
 
 - `GET /api/v1/athletes/{athlete_id}/timeline`
 
+Drill library:
+
+- `POST|GET /api/v1/drills`
+- `GET|PATCH|DELETE /api/v1/drills/{drill_id}`
+- `POST /api/v1/drills/{drill_id}/restore`
+
+Drill assignments:
+
+- `POST|GET /api/v1/athletes/{athlete_id}/drill-assignments`
+- `GET|PATCH /api/v1/athletes/{athlete_id}/drill-assignments/{assignment_id}`
+- `POST .../{assignment_id}/start`
+- `POST .../{assignment_id}/complete`
+- `POST .../{assignment_id}/cancel`
+
+Athlete account access:
+
+- `POST|GET /api/v1/athletes/{athlete_id}/invite`
+- `POST /api/v1/athletes/{athlete_id}/invite/resend`
+- `POST /api/v1/athletes/{athlete_id}/access/disable`
+- `POST /internal/v1/athlete-user-links/{auth_user_id}/activate`
+
+Athlete self-service:
+
+- `GET /api/v1/athlete/me`
+- `GET /api/v1/athlete/dashboard`
+- `GET /api/v1/athlete/timeline`
+- `GET /api/v1/athlete/goals`
+- `GET /api/v1/athlete/drill-assignments`
+- `GET /api/v1/athlete/drill-assignments/{assignment_id}`
+- `POST .../{assignment_id}/start`
+- `POST .../{assignment_id}/progress`
+- `POST .../{assignment_id}/complete`
+
 ## Authentication Expectations
 
 The Auth Service issues JWT access tokens. The Athlete Service validates bearer tokens locally using the shared `JWT_SECRET_KEY` during MVP.
@@ -85,7 +119,7 @@ Expected token claims:
 
 For transition compatibility, the validator also accepts `user_id` when `sub` is absent.
 
-Only `role=coach` can access MVP endpoints. Athlete resources return `404` when they are missing or not accessible to the current coach.
+Coach endpoints require `role=coach`. Athlete self endpoints require `role=athlete`, resolve an active `AthleteUserLink` from JWT `sub`, and never accept an athlete ID as identity input. Missing, disabled, or archived links return a safe not-found response.
 
 ## Environment Setup
 
@@ -103,6 +137,21 @@ Required variables:
 - `CORS_ORIGINS`
 - `DEFAULT_PAGE_SIZE`
 - `MAX_PAGE_SIZE`
+- `AI_REVIEW_SERVICE_URL`
+- `UPSTREAM_TIMEOUT_SECONDS`
+- `MAX_DRILL_TITLE_CHARACTERS`
+- `MAX_DRILL_DESCRIPTION_CHARACTERS`
+- `MAX_DRILL_INSTRUCTIONS_CHARACTERS`
+- `MAX_COACH_NOTES_CHARACTERS`
+- `MAX_DRILL_TAGS`
+- `MAX_DRILL_EQUIPMENT_ITEMS`
+- `DEFAULT_DRILL_ASSIGNMENT_PAGE_SIZE`
+- `AUTH_SERVICE_INTERNAL_URL`
+- `INTERNAL_SERVICE_NAME`
+- `INTERNAL_SERVICE_TOKEN`
+- `ATHLETE_DASHBOARD_RECENT_ITEMS_LIMIT`
+- `ATHLETE_ACCOUNT_LINK_REQUIRED`
+- `MAX_ATHLETE_NOTE_CHARACTERS`
 
 Validation range variables:
 
@@ -165,6 +214,10 @@ mypy app
 - `coach_athlete_relationships`
 - `athlete_goals`
 - `timeline_events`
+- `drills`
+- `drill_assignments`
+- `drill_assignment_activities`
+- `athlete_user_links`
 
 Relationships:
 
@@ -177,15 +230,14 @@ Relationships:
 
 - Uses shared-secret JWT validation for MVP.
 - No public endpoint exists for cross-service timeline event creation yet.
-- No athlete portal login.
-- No media, AI review, drill, or workout ownership in this service.
+- No media, AI review, or workout-plan ownership in this service.
 - Tests require an available PostgreSQL database.
 
 ## Future Service Integrations
 
 - Media Service can create timeline events for video uploads through an internal interface.
 - AI Review Service can create timeline events for review generation and coach approval.
-- Drill Service can link assignments into athlete timelines later.
+- A dedicated Drill Service may be extracted when independent scaling, marketplace ownership, or separate deployment requirements justify it.
 - Auth Service can move JWT verification to asymmetric public-key validation without changing endpoint code.
 
 ## Unified Timeline
@@ -193,3 +245,43 @@ Relationships:
 Athlete Service owns canonical timeline records. Internal producers call `POST /internal/v1/athletes/{athlete_id}/timeline-events` using `X-Service-Name` and `X-Service-Token`. Stable external event IDs make identical retries return the existing row and changed-payload reuse return `409`. Public coach queries filter by category, type, source, visibility, and date range.
 
 Configure `INTERNAL_API_PREFIX` and JSON `INTERNAL_SERVICE_TOKENS`, then run `alembic upgrade head`.
+
+## Drill Assignment Architecture
+
+Drills are reusable coach-owned definitions. AI recommendations remain immutable advisory content in AI Review Service. Assignments are athlete-specific execution records with source snapshots, dates, targets, progress, private notes, and lifecycle state.
+
+Creation modes are `library`, `review`, and `custom`. Review mode fetches `GET /api/v1/reviews/{review_id}/approved` with the current coach JWT and never trusts recommendation text from the browser. A recommendation may be assigned directly, saved as a new private drill, or mapped to an accessible existing drill. No recommendation is assigned automatically.
+
+Allowed transitions are `assigned -> in_progress|completed|cancelled` and `in_progress -> completed|cancelled`. Completed and cancelled states are terminal. Progress above zero moves an assigned record to `in_progress`; completion uses the dedicated endpoint and sets progress to 100.
+
+`drill_assigned`, `drill_started`, and `drill_completed` are athlete-visible timeline events. `drill_cancelled` is coach-only by default. Timeline metadata excludes coach notes, completion notes, cancellation reasons, full instructions, and AI rationale.
+
+Migration:
+
+```bash
+alembic upgrade 20260716_0003
+alembic downgrade 20260710_0002
+```
+
+## Athlete Identity And Dashboard
+
+`athlete_user_links` is the explicit boundary between an external Auth Service user and a local athlete profile. Partial unique indexes permit only one invited or active link per athlete and per Auth user. Disabled links remain historical records.
+
+Only an active link can resolve `/api/v1/athlete/*`. Athlete response schemas omit injury notes, general coach notes, relationship internals, coach IDs, coach notes, cancellation reasons, and internal source references. Timeline queries force `athlete_visible` in the service and apply a metadata allowlist.
+
+Dashboard status is deterministic:
+
+- `needs_attention`: one or more active assignments are overdue
+- `on_track`: active assignments exist and none are overdue
+- `getting_started`: a recently activated account has no active or completed work
+- `no_current_assignments`: no assigned or in-progress work
+
+The dashboard synchronously requests a minimal approved-feedback summary from AI Review Service with a bounded timeout. Failure returns `partial_data: true` and does not fail local drill, goal, or timeline data.
+
+Athletes may start assigned drills, submit non-decreasing progress from 0 through 99, and complete assigned or in-progress drills with explicit confirmation. They cannot create, edit, assign, cancel, or change definitions and dates. Athlete notes are stored on assignment activity for coach visibility and are never copied into timeline metadata.
+
+Stage 9 migration:
+
+```bash
+alembic upgrade 20260716_0004
+```

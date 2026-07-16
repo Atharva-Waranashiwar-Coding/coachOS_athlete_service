@@ -24,6 +24,23 @@ class Settings(BaseSettings):
     graduation_year_max: int = Field(default=2045, alias="GRADUATION_YEAR_MAX")
     internal_api_prefix: str = Field(default="/internal/v1", alias="INTERNAL_API_PREFIX")
     internal_service_tokens: dict[str, str] = Field(default_factory=dict, alias="INTERNAL_SERVICE_TOKENS")
+    ai_review_service_url: str = Field(default="http://localhost:8004", alias="AI_REVIEW_SERVICE_URL")
+    upstream_timeout_seconds: float = Field(default=5, alias="UPSTREAM_TIMEOUT_SECONDS", gt=0)
+    max_drill_title_characters: int = Field(default=200, alias="MAX_DRILL_TITLE_CHARACTERS")
+    max_drill_description_characters: int = Field(default=5000, alias="MAX_DRILL_DESCRIPTION_CHARACTERS")
+    max_drill_instructions_characters: int = Field(default=10000, alias="MAX_DRILL_INSTRUCTIONS_CHARACTERS")
+    max_coach_notes_characters: int = Field(default=10000, alias="MAX_COACH_NOTES_CHARACTERS")
+    max_drill_tags: int = Field(default=30, alias="MAX_DRILL_TAGS")
+    max_drill_equipment_items: int = Field(default=30, alias="MAX_DRILL_EQUIPMENT_ITEMS")
+    default_drill_assignment_page_size: int = Field(default=20, alias="DEFAULT_DRILL_ASSIGNMENT_PAGE_SIZE", gt=0)
+    auth_service_internal_url: str = Field(default="http://localhost:8001", alias="AUTH_SERVICE_INTERNAL_URL")
+    internal_service_name: str = Field(default="athlete-service", alias="INTERNAL_SERVICE_NAME")
+    internal_service_token: str = Field(default="", alias="INTERNAL_SERVICE_TOKEN")
+    athlete_dashboard_recent_items_limit: int = Field(
+        default=5, alias="ATHLETE_DASHBOARD_RECENT_ITEMS_LIMIT", gt=0, le=20
+    )
+    athlete_account_link_required: bool = Field(default=True, alias="ATHLETE_ACCOUNT_LINK_REQUIRED")
+    max_athlete_note_characters: int = Field(default=3000, alias="MAX_ATHLETE_NOTE_CHARACTERS", gt=0)
 
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -55,7 +72,7 @@ class Settings(BaseSettings):
 @lru_cache
 def get_settings() -> Settings:
     """Return cached application settings."""
-    return Settings()
+    return Settings()  # type: ignore[call-arg]
 
 
 settings = get_settings()

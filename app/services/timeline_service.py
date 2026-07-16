@@ -16,6 +16,8 @@ from app.services.pagination import total_pages
 def category_for(event_type: str) -> EventCategory:
     if event_type.startswith("goal_"):
         return EventCategory.GOAL
+    if event_type.startswith("drill_"):
+        return EventCategory.DRILL
     if event_type.startswith(("athlete_", "injury_note_")):
         return EventCategory.PROFILE
     return EventCategory.SYSTEM
@@ -107,7 +109,7 @@ class TimelineService:
     def list_events(self, filters: TimelineListFilters) -> TimelineListResponse:
         items, total = self.timeline_repository.list_for_athlete(filters)
         return TimelineListResponse(
-            items=items,
+            items=[TimelineEventResponse.model_validate(item) for item in items],
             page=filters.page,
             page_size=filters.page_size,
             total=total,

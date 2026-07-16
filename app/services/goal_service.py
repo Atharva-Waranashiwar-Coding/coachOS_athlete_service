@@ -55,7 +55,7 @@ class GoalService:
         self._require_coach_access(filters.athlete_id, current_user.id)
         items, total = self.goal_repository.list_for_athlete(filters)
         return GoalListResponse(
-            items=items,
+            items=[GoalResponse.model_validate(item) for item in items],
             page=filters.page,
             page_size=filters.page_size,
             total=total,

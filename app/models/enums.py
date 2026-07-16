@@ -115,3 +115,68 @@ class EventCategory(str, enum.Enum):
 class TimelineVisibility(str, enum.Enum):
     COACH_ONLY = "coach_only"
     ATHLETE_VISIBLE = "athlete_visible"
+
+
+class DrillCategory(str, enum.Enum):
+    HITTING = "hitting"
+    PITCHING = "pitching"
+    FIELDING = "fielding"
+    THROWING = "throwing"
+    CATCHING = "catching"
+    FOOTWORK = "footwork"
+    SPEED = "speed"
+    STRENGTH = "strength"
+    MOBILITY = "mobility"
+    CONDITIONING = "conditioning"
+    RECOVERY = "recovery"
+    MENTAL = "mental"
+    GENERAL = "general"
+
+
+class DrillDifficulty(str, enum.Enum):
+    BEGINNER = "beginner"
+    INTERMEDIATE = "intermediate"
+    ADVANCED = "advanced"
+
+
+class DrillVisibility(str, enum.Enum):
+    PRIVATE = "private"
+    ORGANIZATION = "organization"
+    SYSTEM = "system"
+
+
+class DrillStatus(str, enum.Enum):
+    ACTIVE = "active"
+    ARCHIVED = "archived"
+
+
+class DrillAssignmentStatus(str, enum.Enum):
+    ASSIGNED = "assigned"
+    IN_PROGRESS = "in_progress"
+    COMPLETED = "completed"
+    CANCELLED = "cancelled"
+
+
+class DrillActivityType(str, enum.Enum):
+    ASSIGNED = "assigned"
+    STARTED = "started"
+    UPDATED = "updated"
+    PROGRESS_UPDATED = "progress_updated"
+    COMPLETED = "completed"
+    CANCELLED = "cancelled"
+
+
+class AthleteUserLinkStatus(str, enum.Enum):
+    INVITED = "invited"
+    ACTIVE = "active"
+    DISABLED = "disabled"
+
+
+class AssignmentActorType(str, enum.Enum):
+    COACH = "coach"
+    ATHLETE = "athlete"
+
+
+class ActivityNoteVisibility(str, enum.Enum):
+    COACH_ONLY = "coach_only"
+    ATHLETE_VISIBLE = "athlete_visible"

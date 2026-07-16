@@ -10,7 +10,7 @@ from app.core.exceptions import BadRequestError, ForbiddenError, NotFoundError
 from app.models.athlete import Athlete, AthleteSecondaryPosition, CoachAthleteRelationship
 from app.models.enums import AthleteStatus, RelationshipRole, RelationshipStatus, TimelineEventType
 from app.repositories.athlete_repository import AthleteListFilters, AthleteRepository
-from app.schemas.athlete import AthleteCreate, AthleteDetail, AthleteListResponse, AthleteUpdate
+from app.schemas.athlete import AthleteCreate, AthleteDetail, AthleteListResponse, AthleteSummary, AthleteUpdate
 from app.schemas.auth import CurrentUser
 from app.services.pagination import total_pages
 from app.services.timeline_service import TimelineService
@@ -69,7 +69,7 @@ class AthleteService:
         """List athletes visible to a coach."""
         items, total = self.athlete_repository.list_for_coach(filters)
         return AthleteListResponse(
-            items=items,
+            items=[AthleteSummary.model_validate(item) for item in items],
             page=filters.page,
             page_size=filters.page_size,
             total=total,

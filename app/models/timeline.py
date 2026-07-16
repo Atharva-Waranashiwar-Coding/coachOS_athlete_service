@@ -4,13 +4,15 @@ import uuid
 from datetime import UTC, datetime
 from typing import Any
 
-from sqlalchemy import CheckConstraint, DateTime, Enum, ForeignKey, Index, Integer, String, Text, text
+from sqlalchemy import JSON, CheckConstraint, DateTime, Enum, ForeignKey, Index, Integer, String, Text, text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.session import Base
 from app.models.athlete import Athlete
 from app.models.enums import EventCategory, TimelineVisibility
+
+Json = JSON().with_variant(JSONB, "postgresql")
 
 
 class TimelineEvent(Base):
@@ -52,7 +54,7 @@ class TimelineEvent(Base):
     occurred_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(UTC), nullable=False
     )
-    metadata_json: Mapped[dict[str, Any]] = mapped_column("metadata", JSONB, default=dict, nullable=False)
+    metadata_json: Mapped[dict[str, Any]] = mapped_column("metadata", Json, default=dict, nullable=False)
     schema_version: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
     visibility: Mapped[TimelineVisibility] = mapped_column(
         Enum(TimelineVisibility, name="timeline_visibility"), nullable=False
