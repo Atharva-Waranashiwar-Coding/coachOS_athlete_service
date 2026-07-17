@@ -44,7 +44,12 @@ class TimelineEvent(Base):
     )
     event_type: Mapped[str] = mapped_column(String(100), nullable=False)
     event_category: Mapped[EventCategory] = mapped_column(
-        Enum(EventCategory, name="timeline_event_category"), nullable=False
+        Enum(
+            EventCategory,
+            name="timeline_event_category",
+            values_callable=lambda values: [item.value for item in values],
+        ),
+        nullable=False,
     )
     title: Mapped[str] = mapped_column(String(200), nullable=False)
     description: Mapped[str | None] = mapped_column(Text)
@@ -58,7 +63,12 @@ class TimelineEvent(Base):
     metadata_json: Mapped[dict[str, Any]] = mapped_column("metadata", Json, default=dict, nullable=False)
     schema_version: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
     visibility: Mapped[TimelineVisibility] = mapped_column(
-        Enum(TimelineVisibility, name="timeline_visibility"), nullable=False
+        Enum(
+            TimelineVisibility,
+            name="timeline_visibility",
+            values_callable=lambda values: [item.value for item in values],
+        ),
+        nullable=False,
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(UTC), nullable=False

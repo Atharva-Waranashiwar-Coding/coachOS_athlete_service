@@ -154,6 +154,8 @@ def test_create_athlete_relationship_and_timeline(client: TestClient, db_session
     assert relationship.coach_user_id == coach_id
     assert relationship.relationship_role == RelationshipRole.PRIMARY_COACH
     assert event.event_type == "athlete_created"
+    assert event.event_category.value == "profile"
+    assert event.visibility.value == "athlete_visible"
     assert event.athlete_id.hex == athlete["id"].replace("-", "")
 
 
