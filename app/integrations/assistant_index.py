@@ -1,4 +1,5 @@
 """Best-effort, coach-scoped assistant indexing for normalized timeline events."""
+
 from uuid import UUID
 
 import httpx
