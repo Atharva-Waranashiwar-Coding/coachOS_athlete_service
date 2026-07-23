@@ -7,6 +7,7 @@ from app.db.session import get_db
 from app.dependencies.internal_auth import InternalServiceIdentity, require_internal_service, validate_internal_event
 from app.schemas.timeline import TimelineEventResponse, TimelineIngestionRequest
 from app.services.timeline_service import TimelineService
+from app.integrations.assistant_index import index_timeline_event
 
 router = APIRouter(prefix="/athletes/{athlete_id}/timeline-events", tags=["internal-timeline"])
 
@@ -25,5 +26,7 @@ def ingest_timeline_event(
         raise BadRequestError("Path athlete_id must match request body.")
     validate_internal_event(identity, payload.source_service, payload.event_type)
     event, created = TimelineService(db).ingest(payload)
+    if created:
+        index_timeline_event(db, athlete_id, event)
     response.status_code = status.HTTP_201_CREATED if created else status.HTTP_200_OK
     return event

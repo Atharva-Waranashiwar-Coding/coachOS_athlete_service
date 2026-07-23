@@ -41,6 +41,8 @@ class Settings(BaseSettings):
     auth_service_internal_url: str = Field(default="http://localhost:8001", alias="AUTH_SERVICE_INTERNAL_URL")
     internal_service_name: str = Field(default="athlete-service", alias="INTERNAL_SERVICE_NAME")
     internal_service_token: str = Field(default="", alias="INTERNAL_SERVICE_TOKEN")
+    assistant_service_internal_url: str = Field(default="http://localhost:8005", alias="ASSISTANT_SERVICE_INTERNAL_URL")
+    assistant_internal_token: str = Field(default="", alias="ASSISTANT_INTERNAL_TOKEN")
     athlete_dashboard_recent_items_limit: int = Field(
         default=5, alias="ATHLETE_DASHBOARD_RECENT_ITEMS_LIMIT", gt=0, le=20
     )
